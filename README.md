@@ -11,7 +11,7 @@ This is a command-line interface (CLI) tool to fetch LeetCode user statistics an
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/leet-api-py.git
+    git clone https://github.com/ashraf8ila/leet-api-py.git
     cd leet-api-py
     ```
 
