@@ -1,53 +1,60 @@
 # LeetCode CLI Tool
 
-This is a command-line interface (CLI) tool to fetch LeetCode user statistics and daily coding challenge questions.
+This tool allows you to fetch LeetCode user information and daily coding challenge questions using a command-line interface (CLI) or a web-based frontend.
 
 ## Features
 
-- Fetch LeetCode user statistics
+- Fetch LeetCode user stats
 - Fetch daily coding challenge questions for a given timeframe
+
+## Requirements
+
+- Python 3.x
+- Flask
+- Requests
 
 ## Installation
 
 1. Clone the repository:
+
     ```sh
     git clone https://github.com/ashraf8ila/leet-api-py.git
     cd leet-api-py
     ```
 
-2. Create a virtual environment and activate it:
-    ```sh
-    python -m venv .venv
-    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
-    ```
+2. Install the required packages:
 
-3. Install the required packages:
     ```sh
     pip install -r requirements.txt
     ```
 
 ## Usage
 
-### Fetch User Info
+### Command-Line Interface (CLI)
 
-To fetch LeetCode user statistics, use the `user-info` command with the `--username` argument:
+To use the CLI, run the `main.py` script with the appropriate arguments:
+
+- Fetch user info:
+
+    ```sh
+    python main.py user-info --username <LeetCodeUsername>
+    ```
+
+- Fetch daily questions:
+
+    ```sh
+    python main.py daily-questions --start <StartDate> --end <EndDate>
+    ```
+
+### Web Application
+
+To use the web-based frontend, run the `app.py` script:
+
 ```sh
-python main.py user-info --username <your-username>
+python app.py
 ```
 
-### Fetch Daily Questions
-
-To fetch daily coding challenge questions for a given timeframe, use the `daily-questions` command with the `--start` and `--end` arguments:
-```sh
-python main.py daily-questions --start YYYY-MM-DD --end YYYY-MM-DD
-```
-
-## Example
-
-```sh
-python main.py user-info --username johndoe
-python main.py daily-questions --start 2023-01-01 --end 2023-01-31
-```
+Then, open your web browser and navigate to `http://127.0.0.1:5000`.
 
 ## License
 

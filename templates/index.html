@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeetCode CLI Tool</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      function clearResult(id) {
+        document.getElementById(id).innerHTML = "";
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>LeetCode CLI Tool</h1>
+        <p class="subtitle">Your Personal LeetCode Companion</p>
+      </header>
+
+      <section class="card">
+        <h2>Fetch LeetCode User Info</h2>
+        <form method="post">
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              placeholder="Enter LeetCode username"
+            />
+          </div>
+          <button type="submit" class="btn-primary">Fetch User Info</button>
+        </form>
+      </section>
+
+      {% if user_info %}
+      <section class="card result">
+        <button class="btn-clear" onclick="clearResult('user-info-result')">
+          Clear
+        </button>
+        <h2>User Info</h2>
+        <div class="user-details">
+          <div class="user-header">
+            <h3>{{ user_info['username'] }}</h3>
+            <span class="ranking">Ranking: {{ user_info['ranking'] }}</span>
+          </div>
+          <div class="solved-problems">
+            <div class="problem-stats">
+              <span class="stat-label">Total Solved</span>
+              <span class="stat-value"
+                >{{ user_info['solved_problems'][0]['count'] }}</span
+              >
+            </div>
+            <div class="problem-breakdown">
+              <div class="difficulty-stat">
+                <span class="easy"
+                  >Easy: {{ user_info['solved_problems'][1]['count'] }}</span
+                >
+                <span class="medium"
+                  >Medium: {{ user_info['solved_problems'][2]['count'] }}</span
+                >
+                <span class="hard"
+                  >Hard: {{ user_info['solved_problems'][3]['count'] }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {% endif %}
+
+      <section class="card">
+        <h2>Fetch Daily Coding Challenge Questions</h2>
+        <form method="post">
+          <div class="form-group">
+            <label for="start_date">Start Date (YYYY-MM-DD):</label>
+            <input type="date" id="start_date" name="start_date" required />
+          </div>
+          <div class="form-group">
+            <label for="end_date">End Date (YYYY-MM-DD):</label>
+            <input type="date" id="end_date" name="end_date" required />
+          </div>
+          <button type="submit" class="btn-primary">Fetch Questions</button>
+        </form>
+      </section>
+
+      {% if questions %}
+      <section class="card result">
+        <button class="btn-clear" onclick="clearResult('questions-result')">
+          Clear
+        </button>
+        <h2>Daily Questions</h2>
+        <ul class="question-list">
+          {% for question in questions %}
+          <li class="question-item">
+            <div class="question-header">
+              <span class="date">{{ question['date'] }}</span>
+              <span class="difficulty {{ question['difficulty'].lower() }}"
+                >{{ question['difficulty'] }}</span
+              >
+            </div>
+            <h3 class="question-title">{{ question['title'] }}</h3>
+            <a href="{{ question['link'] }}" target="_blank" class="btn-link"
+              >View Question</a
+            >
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+  </body>
+</html>

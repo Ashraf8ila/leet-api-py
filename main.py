@@ -30,16 +30,16 @@ def fetch_user_info(username):
     if response.status_code == 200:
         data = response.json().get("data", {}).get("matchedUser")
         if not data:
-            print("User not found.")
-            return
-        print(f"\nLeetCode User: {data['username']}")
-        print(f"Ranking: {data['profile']['ranking']}")
-        print(f"Reputation: {data['profile']['reputation']}")
-        print("Solved Problems:")
-        for item in data["submitStatsGlobal"]["acSubmissionNum"]:
-            print(f"  {item['difficulty']}: {item['count']} problems")
+            return "User not found."
+        user_info = {
+            "username": data['username'],
+            "ranking": data['profile']['ranking'],
+            "reputation": data['profile']['reputation'],
+            "solved_problems": data["submitStatsGlobal"]["acSubmissionNum"]
+        }
+        return user_info
     else:
-        print("Error fetching user info.")
+        return "Error fetching user info."
 
 
 def fetch_daily_questions(start_date, end_date):
@@ -64,6 +64,7 @@ def fetch_daily_questions(start_date, end_date):
     end = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 
     current = start
+    questions = []
     while current <= end:
         year, month = current.year, current.month
         response = requests.post(BASE_URL, json={"query": query, "variables": {"year": year, "month": month}},
@@ -75,15 +76,21 @@ def fetch_daily_questions(start_date, end_date):
                 challenge_date = challenge["date"]
                 if start_date <= challenge_date <= end_date:
                     question = challenge["question"]
-                    print(f"\n[{challenge_date}] {question['title']} ({question['difficulty']})")
-                    print(f"  Link: https://leetcode.com{challenge['link']}\n")
+                    questions.append({
+                        "date": challenge_date,
+                        "title": question['title'],
+                        "difficulty": question['difficulty'],
+                        "link": f"https://leetcode.com{challenge['link']}"
+                    })
         else:
-            print(f"Error fetching daily questions for {year}-{month}")
+            questions.append(f"Error fetching daily questions for {year}-{month}")
 
         # Move to next month
         next_month = (current.month % 12) + 1
         next_year = current.year if next_month != 1 else current.year + 1
         current = datetime.datetime(next_year, next_month, 1)
+    
+    return questions
 
 
 def main():
@@ -102,9 +109,24 @@ def main():
     args = parser.parse_args()
 
     if args.command == "user-info":
-        fetch_user_info(args.username)
+        user_info = fetch_user_info(args.username)
+        if isinstance(user_info, str):
+            print(user_info)
+        else:
+            print(f"\nLeetCode User: {user_info['username']}")
+            print(f"Ranking: {user_info['ranking']}")
+            print(f"Reputation: {user_info['reputation']}")
+            print("Solved Problems:")
+            for item in user_info["solved_problems"]:
+                print(f"  {item['difficulty']}: {item['count']} problems")
     elif args.command == "daily-questions":
-        fetch_daily_questions(args.start, args.end)
+        questions = fetch_daily_questions(args.start, args.end)
+        for question in questions:
+            if isinstance(question, str):
+                print(question)
+            else:
+                print(f"\n[{question['date']}] {question['title']} ({question['difficulty']})")
+                print(f"  Link: {question['link']}\n")
     else:
         parser.print_help()
 
