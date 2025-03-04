@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LeetCode CLI Tool</title>
+    <title>LeetCode Companion</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
@@ -12,111 +12,385 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
-    <script>
-      function clearResult(id) {
-        document.getElementById(id).innerHTML = "";
-      }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>LeetCode CLI Tool</h1>
-        <p class="subtitle">Your Personal LeetCode Companion</p>
+        <h1>LeetCode Companion</h1>
+        <p class="subtitle">Your Personal Coding Journey Assistant</p>
       </header>
 
-      <section class="card">
-        <h2>Fetch LeetCode User Info</h2>
-        <form method="post">
-          <div class="form-group">
-            <label for="username">Username:</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              required
-              placeholder="Enter LeetCode username"
-            />
-          </div>
-          <button type="submit" class="btn-primary">Fetch User Info</button>
-        </form>
-      </section>
-
-      {% if user_info %}
-      <section class="card result">
-        <button class="btn-clear" onclick="clearResult('user-info-result')">
-          Clear
-        </button>
-        <h2>User Info</h2>
-        <div class="user-details">
-          <div class="user-header">
-            <h3>{{ user_info['username'] }}</h3>
-            <span class="ranking">Ranking: {{ user_info['ranking'] }}</span>
-          </div>
-          <div class="solved-problems">
-            <div class="problem-stats">
-              <span class="stat-label">Total Solved</span>
-              <span class="stat-value"
-                >{{ user_info['solved_problems'][0]['count'] }}</span
-              >
+      <div class="dashboard">
+        <div class="user-section card">
+          <h2>LeetCode User Info</h2>
+          <form id="user-form" method="post">
+            <div class="form-group">
+              <label for="username">Username:</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                placeholder="Enter LeetCode username"
+              />
             </div>
-            <div class="problem-breakdown">
-              <div class="difficulty-stat">
-                <span class="easy"
-                  >Easy: {{ user_info['solved_problems'][1]['count'] }}</span
-                >
-                <span class="medium"
-                  >Medium: {{ user_info['solved_problems'][2]['count'] }}</span
-                >
-                <span class="hard"
-                  >Hard: {{ user_info['solved_problems'][3]['count'] }}</span
-                >
+            <button type="submit" class="btn-primary">Fetch User Info</button>
+          </form>
+
+          {% if user_info %}
+          <div class="user-details">
+            <div class="user-header">
+              <img
+                src="{{ user_info.avatar }}"
+                alt="{{ user_info.username }} avatar"
+                class="user-avatar"
+              />
+              <div class="user-info">
+                <h3>{{ user_info.username }}</h3>
+                <p>{{ user_info.real_name }}</p>
+              </div>
+            </div>
+            <div class="user-stats">
+              <div class="stats-overview">
+                <div class="stats-section">
+                  <div class="stat-row">
+                    <div class="stat-item">
+                      <span class="stat-label">Global Ranking</span>
+                      <span class="stat-value">{{ user_info.ranking }}</span>
+                      <span class="stat-sub"
+                        >Top {{ user_info.ranking_percentile }}%</span
+                      >
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Total Solved</span>
+                      <span class="stat-value"
+                        >{{ user_info.total_solved }}</span
+                      >
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Acceptance Rate</span>
+                      <span class="stat-value"
+                        >{{ user_info.acceptance_rate }}%</span
+                      >
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Points</span>
+                      <span class="stat-value"
+                        >{{ user_info.contribution_points }}</span
+                      >
+                    </div>
+                    <div class="stat-item rank-card">
+                      <span class="stat-label">Rank Tier</span>
+                      <span
+                        class="stat-value tier-{{ user_info.rank_tier.lower() }}"
+                        >{{ user_info.rank_tier }}</span
+                      >
+                      {% if user_info.next_tier_progress %}
+                      <div class="tier-progress">
+                        <div
+                          class="progress-bar"
+                          style="width: {{ user_info.next_tier_progress.progress }}%"
+                        ></div>
+                        <span class="progress-text"
+                          >{{ user_info.next_tier_progress.progress }}% to {{
+                          user_info.next_tier_progress.next_tier }}</span
+                        >
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="completion-stats">
+                    <h4>Completion Progress</h4>
+                    <div class="completion-grid">
+                      <div class="completion-item">
+                        <span class="completion-label">Overall</span>
+                        <div class="progress-bar">
+                          <div
+                            class="progress"
+                            style="width: {{ user_info.completion_rate }}%"
+                          ></div>
+                        </div>
+                        <span class="completion-value"
+                          >{{ user_info.completion_rate }}%</span
+                        >
+                      </div>
+                      {% for diff, rate in
+                      user_info.difficulty_completion.items() %}
+                      <div class="completion-item">
+                        <span class="completion-label">{{ diff }}</span>
+                        <div class="progress-bar">
+                          <div
+                            class="progress {{ diff.lower() }}"
+                            style="width: {{ rate }}%"
+                          ></div>
+                        </div>
+                        <span class="completion-value">{{ rate }}%</span>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="chart-section">
+                  <div class="chart-container">
+                    <div class="chart-controls">
+                      <select id="chart-type" onchange="updateChartType()">
+                        <option value="numbers">Numbers Only</option>
+                        <option value="bar">Bar Chart</option>
+                        <option value="pie">Pie Chart</option>
+                      </select>
+                    </div>
+                    <div id="numbers-view" class="stats-grid">
+                      {% for problem in user_info.solved_problems %}
+                      <div class="stat-box {{ problem.difficulty.lower() }}">
+                        <span class="stat-title">{{ problem.difficulty }}</span>
+                        <span class="stat-number">{{ problem.count }}</span>
+                      </div>
+                      {% endfor %}
+                    </div>
+                    <canvas id="difficulty-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="topics-overview">
+                <h3>Topics Analysis</h3>
+                <div class="topics-grid">
+                  <div class="topics-solved">
+                    <h4>Strong Topics</h4>
+                    <ul>
+                      {% for topic in user_info.top_topics %}
+                      <li class="topic-item">
+                        <span class="topic-name">{{ topic.name }}</span>
+                        <span class="topic-count"
+                          >{{ topic.solved }}/{{ topic.total }}</span
+                        >
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  <div class="topics-to-improve">
+                    <h4>Topics to Focus</h4>
+                    <ul>
+                      {% for topic in user_info.weak_topics %}
+                      <li class="topic-item">
+                        <span class="topic-name">{{ topic.name }}</span>
+                        <span class="topic-progress"
+                          >{{ topic.percentage }}%</span
+                        >
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          {% endif %}
         </div>
-      </section>
-      {% endif %}
 
-      <section class="card">
-        <h2>Fetch Daily Coding Challenge Questions</h2>
-        <form method="post">
-          <div class="form-group">
-            <label for="start_date">Start Date (YYYY-MM-DD):</label>
-            <input type="date" id="start_date" name="start_date" required />
-          </div>
-          <div class="form-group">
-            <label for="end_date">End Date (YYYY-MM-DD):</label>
-            <input type="date" id="end_date" name="end_date" required />
-          </div>
-          <button type="submit" class="btn-primary">Fetch Questions</button>
-        </form>
-      </section>
-
-      {% if questions %}
-      <section class="card result">
-        <button class="btn-clear" onclick="clearResult('questions-result')">
-          Clear
-        </button>
-        <h2>Daily Questions</h2>
-        <ul class="question-list">
-          {% for question in questions %}
-          <li class="question-item">
-            <div class="question-header">
-              <span class="date">{{ question['date'] }}</span>
-              <span class="difficulty {{ question['difficulty'].lower() }}"
-                >{{ question['difficulty'] }}</span
-              >
+        <div class="questions-section card">
+          <h2>Daily Coding Challenges</h2>
+          <form id="daily-questions-form" method="post">
+            <div class="form-group">
+              <label for="start_date">Start Date:</label>
+              <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                required
+                value="2020-04-01"
+              />
             </div>
-            <h3 class="question-title">{{ question['title'] }}</h3>
-            <a href="{{ question['link'] }}" target="_blank" class="btn-link"
-              >View Question</a
-            >
-          </li>
-          {% endfor %}
-        </ul>
-      </section>
-      {% endif %}
+            <div class="form-group">
+              <label for="end_date">End Date:</label>
+              <input type="date" id="end_date" name="end_date" required />
+            </div>
+            <div class="form-group">
+              <label for="per_page">Questions per page:</label>
+              <select id="per_page" name="per_page">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary">Fetch Questions</button>
+          </form>
+
+          {% if questions %}
+          <div class="questions-list">
+            <h3>Challenges Found ({{ questions|length }} total)</h3>
+            <div class="pagination">
+              <button class="btn-secondary" onclick="previousPage()">
+                Previous
+              </button>
+              <span id="page-info">Page <span id="current-page">1</span></span>
+              <button class="btn-secondary" onclick="nextPage()">Next</button>
+            </div>
+            <ul>
+              {% for question in questions %}
+              <li class="question-item">
+                <div class="question-header">
+                  <span class="date">{{ question.date }}</span>
+                  <span class="difficulty {{ question.difficulty.lower() }}">
+                    {{ question.difficulty }}
+                  </span>
+                </div>
+                <h4 class="question-title">{{ question.title }}</h4>
+                <div class="question-details">
+                  <div class="question-stats">
+                    <div class="tags">
+                      {% for tag in question.tags %}
+                      <span class="tag">{{ tag }}</span>
+                      {% endfor %}
+                    </div>
+                    <div class="stats">
+                      <span class="like-ratio" title="Like ratio"
+                        >{{ question.like_ratio }}%</span
+                      >
+                      <span class="likes">👍 {{ question.likes }}</span>
+                      <span class="dislikes">👎 {{ question.dislikes }}</span>
+                    </div>
+                  </div>
+                  <a
+                    href="{{ question.link }}"
+                    target="_blank"
+                    class="solve-btn"
+                  >
+                    Solve →
+                  </a>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
+
+    <script>
+      {% if user_info and user_info.solved_problems %}
+      document.addEventListener('DOMContentLoaded', function() {
+          Chart.register(ChartDataLabels);
+          const ctx = document.getElementById('difficulty-chart').getContext('2d');
+          const numbersView = document.getElementById('numbers-view');
+          const chartCanvas = document.getElementById('difficulty-chart');
+          let currentChart = null;
+
+          const chartData = {
+              labels: ['Easy', 'Medium', 'Hard'],
+              datasets: [{
+                  data: [
+                      {{ user_info.difficulty_breakdown.get('Easy', 0) }},
+                      {{ user_info.difficulty_breakdown.get('Medium', 0) }},
+                      {{ user_info.difficulty_breakdown.get('Hard', 0) }}
+                  ],
+                  backgroundColor: ['#2ecc71', '#f39c12', '#e74c3c'],
+                  borderWidth: 2,
+                  borderColor: '#ffffff'
+              }]
+          };
+
+          const baseOptions = {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                  datalabels: {
+                      color: '#fff',
+                      font: { weight: 'bold', size: 14 },
+                      formatter: (value, ctx) => {
+                          const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = (value * 100 / sum).toFixed(1) + '%';
+                          return `${value}\n(${percentage})`;
+                      }
+                  },
+                  legend: {
+                      position: 'bottom',
+                      labels: { padding: 20, usePointStyle: true }
+                  }
+              }
+          };
+
+          function createChart(type) {
+              if (currentChart) {
+                  currentChart.destroy();
+              }
+
+              const options = { ...baseOptions };
+              if (type === 'bar') {
+                  options.plugins.datalabels.color = '#333';
+                  options.scales = {
+                      y: { beginAtZero: true }
+                  };
+              }
+
+              currentChart = new Chart(ctx, {
+                  type: type,
+                  data: chartData,
+                  options: options
+              });
+          }
+
+          window.updateChartType = function() {
+              const type = document.getElementById('chart-type').value;
+              numbersView.style.display = type === 'numbers' ? 'grid' : 'none';
+              chartCanvas.style.display = type === 'numbers' ? 'none' : 'block';
+
+              if (type !== 'numbers') {
+                  createChart(type);
+              }
+          }
+
+          // Initialize with numbers view
+          chartCanvas.style.display = 'none';
+          numbersView.style.display = 'grid';
+      });
+      {% endif %}
+    </script>
+    <script>
+      // Set default end date to today
+      document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("end_date").value = today;
+
+        // Initialize pagination
+        const perPage = parseInt(document.getElementById("per_page").value);
+        const questions = document.querySelectorAll(".question-item");
+        let currentPage = 1;
+
+        function showPage(page) {
+          const start = (page - 1) * perPage;
+          const end = start + perPage;
+
+          questions.forEach((q, index) => {
+            q.style.display = index >= start && index < end ? "block" : "none";
+          });
+
+          document.getElementById("current-page").textContent = page;
+        }
+
+        window.previousPage = function () {
+          if (currentPage > 1) {
+            currentPage--;
+            showPage(currentPage);
+          }
+        };
+
+        window.nextPage = function () {
+          const maxPages = Math.ceil(questions.length / perPage);
+          if (currentPage < maxPages) {
+            currentPage++;
+            showPage(currentPage);
+          }
+        };
+
+        // Show initial page
+        if (questions.length > 0) {
+          showPage(1);
+        }
+      });
+    </script>
   </body>
 </html>
